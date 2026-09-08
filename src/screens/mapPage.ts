@@ -53,8 +53,8 @@ export function mountMapPage(deps: MapPageDeps): () => void {
 
   const play = document.createElement('button');
   play.className = 'menu-btn';
-  play.style.left = '1150px';
-  play.style.top = '620px';
+  play.style.left = '1100px';
+  play.style.top = '600px';
   play.textContent = 'Start';
   play.addEventListener('click', () => deps.onPlay(selected));
 

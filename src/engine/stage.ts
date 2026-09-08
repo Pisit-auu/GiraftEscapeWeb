@@ -7,9 +7,18 @@ export function syncOverlayScale(
   stage: HTMLElement,
   overlay: HTMLElement,
   designWidth = 1600,
+  onHiddenChange?: (hidden: boolean) => void,
 ): () => void {
+  let hidden: boolean | null = null;
   const apply = (): void => {
-    overlay.style.transform = `scale(${stage.clientWidth / designWidth})`;
+    const width = stage.clientWidth;
+    overlay.style.transform = `scale(${width / designWidth})`;
+    // width 0 = เวทีถูกซ่อน (จอแนวตั้งบนมือถือ) แจ้งให้ loop หยุดเดินเกม
+    const nowHidden = width === 0;
+    if (nowHidden !== hidden) {
+      hidden = nowHidden;
+      onHiddenChange?.(nowHidden);
+    }
   };
   apply();
   const observer = new ResizeObserver(apply);

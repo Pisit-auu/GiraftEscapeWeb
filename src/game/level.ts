@@ -39,7 +39,8 @@ export class Level {
   ) {
     this.giraffeFortress = new Fortress('giraffe', FORTRESS_GIRAFFE_SPRITE, 1350, 300, FORTRESS_HP);
     this.enemyFortress = new Fortress('enemy', FORTRESS_ENEMY_SPRITE, -200, 250, FORTRESS_HP);
-    this.spawnTimerMs = this.nextSpawnDelay();
+    // ต้นฉบับ Java spawn ก่อนแล้วค่อย sleep รอบแรก ศัตรูตัวแรกจึงมาทันทีที่เข้าด่าน
+    this.spawnTimerMs = 0;
   }
 
   private randInt(base: number, range: number): number {
@@ -131,6 +132,7 @@ export class Level {
     this.status = 'playing';
     this.cooldownRemainingMs = 0;
     this.cooldownTotalMs = 0;
-    this.spawnTimerMs = this.nextSpawnDelay();
+    // เหมือน constructor: เริ่มด่านใหม่แล้วต้องมีศัตรูรออยู่ทันที
+    this.spawnTimerMs = 0;
   }
 }

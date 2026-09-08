@@ -11,6 +11,7 @@ export type LevelScreenDeps = {
   assets: AssetMap;
   canvas: HTMLCanvasElement;
   overlay: HTMLElement;
+  isHidden: () => boolean;
   onExit: () => void;
   onWin: (unlocked: 2 | 3 | null) => void;
 };
@@ -77,8 +78,13 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
   deps.overlay.append(panel);
 
   let announced = false;
+  let focusedIndex: number | null = null;
 
   function update(dtMs: number): void {
+    // มือถือหมุนเป็นแนวตั้ง: stage ถูกซ่อนด้วย display:none แต่ rAF ยังเดินต่อ
+    // หยุดจำลองเกมไว้ตรงนี้ ไม่งั้นผู้เล่นจะพลิกกลับมาเจอเกมจบไปแล้วโดยไม่ได้กดอะไร
+    if (deps.isHidden()) return;
+
     level.update(dtMs);
 
     const locked = level.cooldownRemainingMs > 0 || level.status !== 'playing';
@@ -88,6 +94,17 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
         ? Math.min(1, level.cooldownRemainingMs / level.cooldownTotalMs)
         : 0;
       bar.style.height = `${ratio * 100}%`;
+    }
+
+    // จำปุ่มที่ถือ focus ไว้ก่อนถูก disable แล้วคืนให้เมื่อ cooldown จบ
+    // ไม่งั้นผู้เล่นคีย์บอร์ดต้อง Tab ใหม่ทุกครั้งที่เรียกยีราฟ
+    if (locked && focusedIndex === null) {
+      const i = buttons.findIndex((b) => b.el === document.activeElement);
+      if (i >= 0) focusedIndex = i;
+    }
+    if (!locked && focusedIndex !== null) {
+      if (document.activeElement === document.body) buttons[focusedIndex].el.focus();
+      focusedIndex = null;
     }
 
     if (level.status !== 'playing' && !announced) {
@@ -104,6 +121,10 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
   }
 
   function render(): void {
+    // stage ซ่อนอยู่ (มือถือแนวตั้ง): display:none ไม่ได้หยุด canvas 2D
+    // เคลียร์/วาดฉาก 1600x800 ทุกเฟรมทั้งที่มองไม่เห็น จึงข้ามไปเลย
+    if (deps.isHidden()) return;
+
     renderer.clear();
     renderer.image(config.background, 0, 0, STAGE_W, STAGE_H);
 
@@ -118,8 +139,8 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
 
     // แถบ HP ผูกกับป้อมของตัวเองโดยตรง — ต้นฉบับสลับข้างกันตอนสร้าง
     // (FortressGiraffe เรียก sethpenemy, FortressEnemy เรียก sethpgirafe)
-    renderer.text(`HP Enemies: ${ef.hp}`, 20, 40, { color: '#fff' });
-    renderer.text(`HP Giraffe: ${gf.hp}`, 1300, 40, { color: '#fff' });
+    renderer.text(`HP Enemies: ${ef.hp}`, 20, 40, { color: '#fff', font: 'bold 32px system-ui, sans-serif' });
+    renderer.text(`HP Giraffe: ${gf.hp}`, 1300, 40, { color: '#fff', font: 'bold 32px system-ui, sans-serif' });
   }
 
   const loop = createLoop(update, render);

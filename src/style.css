@@ -26,7 +26,7 @@ body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
 }
 
 /* ---- ต่อท้าย src/style.css ---- */
-.spawn-row { left: 600px; top: 660px; width: 440px; height: 90px; display: flex; gap: 8px; align-items: center; }
+.spawn-row { left: 600px; top: 660px; width: 440px; height: 90px; display: flex; justify-content: center; gap: 8px; align-items: center; }
 
 .spawn-btn {
   width: 80px; height: 80px; padding: 0;
@@ -83,7 +83,7 @@ body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
  * และ .spawn-btn ตั้ง overflow:hidden ไว้สำหรับแถบ cooldown ซึ่งจะตัด ::after ทิ้ง
  * ที่ 120px -> 50px จริง และ 220x110 -> 92x46 จริง ผ่านเกณฑ์ทั้งคู่
  */
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-height: 450px) {
   .spawn-row { left: 340px; top: 640px; width: 720px; height: 130px; gap: 12px; }
   .spawn-btn { width: 120px; height: 120px; }
   .game-btn { height: 110px; font-size: 30px; }

@@ -35,20 +35,27 @@ describe('Level', () => {
     expect(lv.trySpawnGiraffe(1)).toBe(true);
   });
 
-  it('ศัตรูเกิดที่ x = 150 ตามช่วงเวลาของด่าน', () => {
+  it('ศัตรูตัวแรกเกิดทันทีที่ x = 150 ตัวถัดไปเกิดตามช่วงเวลาของด่าน', () => {
+    // ต้นฉบับ Java spawn ก่อนแล้วค่อย sleep รอบแรก ตัวแรกจึงต้องอยู่บนสนามตั้งแต่เฟรมแรก
     const lv = new Level(LEVELS[1], fixedRng(0));  // rng 0 -> ช่วงต่ำสุด 2000ms
+    expect(lv.enemies).toHaveLength(0);    // ยังไม่ update เลย ยังไม่มีตัวเกิด
+    lv.update(STEP_MS);
+    expect(lv.enemies).toHaveLength(1);
+    expect(lv.enemies[0].x).toBe(ENEMY_SPAWN_X);
+
+    // ตัวถัดไปยังต้องรอครบช่วงเวลาของด่านตามปกติ (2000ms กับ rng นี้)
     tick(lv, 1900);
-    expect(lv.enemies).toHaveLength(0);
-    // เดินทีละเฟรมจนศัตรูโผล่ แล้วเช็คตำแหน่งในเฟรมนั้นเลย
+    expect(lv.enemies).toHaveLength(1);
+    // เดินทีละเฟรมจนศัตรูตัวที่สองโผล่ แล้วเช็คตำแหน่งในเฟรมนั้นเลย
     // ถ้า tick ทีเดียว 200ms ตัวที่เกิดจะถูกขยับต่ออีกหลายเฟรมก่อนถึง assertion
     let frames = 0;
-    while (lv.enemies.length === 0 && frames < 60) {
+    while (lv.enemies.length === 1 && frames < 60) {
       lv.update(STEP_MS);
       frames += 1;
     }
-    expect(lv.enemies).toHaveLength(1);
-    expect(lv.enemies[0].x).toBe(ENEMY_SPAWN_X);
-    expect(frames * STEP_MS).toBeLessThan(200);   // เกิดในช่วง 1900-2100ms
+    expect(lv.enemies).toHaveLength(2);
+    expect(lv.enemies[1].x).toBe(ENEMY_SPAWN_X);
+    expect(frames * STEP_MS).toBeLessThan(200);   // เกิดในช่วง 1900-2100ms หลังตัวแรก
   });
 
   it('สุ่มศัตรูได้หลายชนิดจริง (ไม่ใช่ตัวเดิมตลอดแบบบั๊กเดิม)', () => {
@@ -65,7 +72,7 @@ describe('Level', () => {
     const lv = new Level(LEVELS[1], fixedRng(0));
     lv.trySpawnGiraffe(0);                // DefaultGiraffe hp100 dmg15 as500
     const giraffe = lv.giraffes[0];
-    tick(lv, 2100);                       // rng 0 -> ศัตรูตัวแรกเกิดที่ 2000ms
+    lv.update(STEP_MS);                   // ศัตรูตัวแรกเกิดทันทีที่ด่านเริ่ม (ไม่ต้องรอช่วงเวลา)
     expect(lv.enemies).toHaveLength(1);
     const human = lv.enemies[0];          // Human hp200 dmg20 as500
     // ย้ายคู่ดวลไปกลางฉาก ให้ห่างทั้งจุดเกิดศัตรู (x=150) และป้อมทั้งสองฝั่ง

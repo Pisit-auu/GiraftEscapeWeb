@@ -13,7 +13,8 @@ const stage = document.querySelector<HTMLElement>('#stage');
 if (!canvas || !overlay || !stage) throw new Error('โครง HTML ไม่ครบ');
 
 // ต้องเรียกก่อนวางปุ่ม ไม่งั้น overlay จะไม่ทับ canvas บนจอที่ไม่ใช่ 1600px
-syncOverlayScale(stage, overlay);
+let stageHidden = false;
+syncOverlayScale(stage, overlay, 1600, (hidden) => { stageHidden = hidden; });
 
 const loading = document.createElement('div');
 loading.id = 'loading';
@@ -49,6 +50,7 @@ function showLevel(assets: AssetMap, levelId: LevelId): void {
         assets: a,
         canvas: canvas!,
         overlay: overlay!,
+        isHidden: () => stageHidden,
         onExit: () => showMap(assets),
         onWin: (next) => unlock(next),
       }),
