@@ -88,6 +88,15 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
     level.update(dtMs);
 
     const locked = level.cooldownRemainingMs > 0 || level.status !== 'playing';
+
+    // จำปุ่มที่ถือ focus ไว้ "ก่อน" จะ disable ไม่ใช่หลัง
+    // เบราว์เซอร์แต่ละตัวย้าย focus ออกจาก element ที่ถูก disable คนละจังหวะกัน
+    // ถ้าเช็คหลัง disable บางเบราว์เซอร์จะเห็นเป็น body ไปแล้วและจำไม่ทัน
+    if (locked && focusedIndex === null) {
+      const i = buttons.findIndex((b) => b.el === document.activeElement);
+      if (i >= 0) focusedIndex = i;
+    }
+
     for (const { el, bar } of buttons) {
       el.disabled = locked;
       const ratio = level.cooldownTotalMs > 0
@@ -96,12 +105,6 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
       bar.style.height = `${ratio * 100}%`;
     }
 
-    // จำปุ่มที่ถือ focus ไว้ก่อนถูก disable แล้วคืนให้เมื่อ cooldown จบ
-    // ไม่งั้นผู้เล่นคีย์บอร์ดต้อง Tab ใหม่ทุกครั้งที่เรียกยีราฟ
-    if (locked && focusedIndex === null) {
-      const i = buttons.findIndex((b) => b.el === document.activeElement);
-      if (i >= 0) focusedIndex = i;
-    }
     if (!locked && focusedIndex !== null) {
       if (document.activeElement === document.body) buttons[focusedIndex].el.focus();
       focusedIndex = null;
