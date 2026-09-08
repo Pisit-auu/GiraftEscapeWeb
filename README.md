@@ -29,6 +29,13 @@ npm run build    # build ลง dist/
 
 หลังจากนั้น push ขึ้น `main` ทุกครั้ง Vercel จะ build และ deploy ให้อัตโนมัติ
 
+### เรื่อง cache ของ asset
+
+`vercel.json` แยก cache เป็นสองแบบโดยตั้งใจ
+
+- `.js` / `.css` — Vite ใส่ hash ในชื่อไฟล์ให้อยู่แล้ว (`index-BTudJNJh.js`) ชื่อเปลี่ยนทุกครั้งที่เนื้อหาเปลี่ยน จึง cache แบบ `immutable` หนึ่งปีได้ปลอดภัย
+- `.png` — รูปเกมถูกคัดลอกจาก `public/assets/` โดยชื่อไม่เปลี่ยน ถ้า cache แบบ `immutable` ด้วย วันที่แก้รูปแล้ว deploy ใหม่ ผู้เล่นเก่าจะเห็นรูปเดิมค้างได้ถึงหนึ่งปี และสั่ง refresh ก็ไม่หาย จึงให้ cache 1 ชั่วโมงแล้ว revalidate เบื้องหลังแทน
+
 ## ที่มาของค่าเกม
 
 ค่า HP / damage / attack speed / ความเร็ว ของตัวละครทุกตัวและ config ทั้ง 3 ด่าน
