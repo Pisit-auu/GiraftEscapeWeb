@@ -24,3 +24,33 @@ body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
   #stage { display: none; }
   #rotate-hint { display: block; }
 }
+
+/* ---- ต่อท้าย src/style.css ---- */
+.spawn-row { left: 600px; top: 660px; width: 440px; height: 90px; display: flex; gap: 8px; align-items: center; }
+
+.spawn-btn {
+  width: 80px; height: 80px; padding: 0;
+  background: #f2ff84 center/contain no-repeat;
+  border: 1px solid #000; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.spawn-btn:disabled { cursor: not-allowed; filter: grayscale(0.7) brightness(0.8); }
+/* แถบ cooldown ไล่ลงจากบนสุด */
+.spawn-btn .cd { position: absolute; inset: 0 0 auto 0; background: rgba(0,0,0,.55); transform-origin: top; }
+
+.game-btn {
+  background: #ffeb3b; border: 1px solid #333; cursor: pointer;
+  font: 14px system-ui, sans-serif; height: 30px;
+}
+.btn-exit { left: 1400px; top: 700px; width: 100px; }
+.btn-restart { left: 1300px; top: 700px; width: 100px; }
+
+.result-panel {
+  left: 600px; top: 300px; width: 400px; height: 200px;
+  background: #3f3f3f; color: #fff;
+  display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+}
+.result-panel[data-open='true'] { display: flex; }
+.result-panel h2 { margin: 0; font: bold 24px Arial, sans-serif; }
+.result-panel .row { display: flex; gap: 12px; }
+.result-panel .game-btn { position: static; width: 150px; }
