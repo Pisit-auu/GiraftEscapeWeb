@@ -69,3 +69,26 @@ body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
 #loading .bar { width: 400px; height: 12px; background: #333; }
 #loading .bar > i { display: block; height: 100%; width: 0; background: #8bc34a; }
 #loading .err { color: #ff8a80; max-width: 700px; text-align: center; }
+
+/* ---- ต่อท้าย src/style.css ---- */
+/* กันนิ้วลากแล้วจอเลื่อน/ซูมระหว่างเล่น */
+#stage { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.spawn-btn, .game-btn, .menu-btn { touch-action: manipulation; }
+
+/*
+ * จอเล็ก: ต้องขยายปุ่มใน "พิกัดออกแบบ" เท่านั้น
+ * overlay ทั้งชั้นถูก scale ลงตามความกว้างจอ (บนจอ 667px scale ราว 0.42)
+ * ปุ่ม 80px จึงเหลือแค่ 33px จริง ต่ำกว่าเกณฑ์แตะ 44px
+ * การเพิ่มขอบด้วย ::after ใช้ไม่ได้สองชั้น: มันหดตาม scale เหลือ 5px
+ * และ .spawn-btn ตั้ง overflow:hidden ไว้สำหรับแถบ cooldown ซึ่งจะตัด ::after ทิ้ง
+ * ที่ 120px -> 50px จริง และ 220x110 -> 92x46 จริง ผ่านเกณฑ์ทั้งคู่
+ */
+@media (max-width: 900px) {
+  .spawn-row { left: 340px; top: 640px; width: 720px; height: 130px; gap: 12px; }
+  .spawn-btn { width: 120px; height: 120px; }
+  .game-btn { height: 110px; font-size: 30px; }
+  .btn-restart { left: 1100px; top: 640px; width: 220px; }
+  .btn-exit { left: 1340px; top: 640px; width: 220px; }
+  /* ปุ่มในกล่องแพ้/ชนะยังเป็น static ตาม .result-panel .game-btn จึงไม่ถูกย้าย */
+  .result-panel .game-btn { height: 60px; font-size: 22px; }
+}
