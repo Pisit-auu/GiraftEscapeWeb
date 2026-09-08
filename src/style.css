@@ -1,0 +1,26 @@
+:root { --stage-w: 1600; --stage-h: 800; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
+body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
+
+#stage {
+  position: relative;
+  width: min(100vw, calc(100vh * var(--stage-w) / var(--stage-h)));
+  aspect-ratio: var(--stage-w) / var(--stage-h);
+}
+#game { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+/* overlay ใช้พิกัดเดียวกับ canvas (1600x800) แล้ว scale ทั้งชั้นพร้อมกัน */
+#overlay {
+  position: absolute; inset: 0;
+  width: calc(var(--stage-w) * 1px); height: calc(var(--stage-h) * 1px);
+  transform-origin: top left;
+  pointer-events: none;
+}
+#overlay > * { pointer-events: auto; position: absolute; }
+
+#rotate-hint { display: none; color: #fff; padding: 2rem; text-align: center; font-size: 1.2rem; }
+@media (orientation: portrait) and (max-width: 900px) {
+  #stage { display: none; }
+  #rotate-hint { display: block; }
+}
