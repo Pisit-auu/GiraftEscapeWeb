@@ -1,3 +1,7 @@
+import '@fontsource/mitr/latin-500.css';
+import '@fontsource/mitr/latin-600.css';
+import '@fontsource/mitr/thai-500.css';
+import '@fontsource/mitr/thai-600.css';
 import './style.css';
 import { browserImageLoader, loadAll, type AssetMap } from './engine/assets';
 import { syncOverlayScale } from './engine/stage';
@@ -18,13 +22,15 @@ syncOverlayScale(stage, overlay, 1600, (hidden) => { stageHidden = hidden; });
 
 const loading = document.createElement('div');
 loading.id = 'loading';
+const mascot = document.createElement('div');
+mascot.className = 'mascot';
 const label = document.createElement('div');
 label.textContent = 'กำลังโหลด...';
 const bar = document.createElement('div');
 bar.className = 'bar';
 const fill = document.createElement('i');
 bar.append(fill);
-loading.append(label, bar);
+loading.append(mascot, label, bar);
 stage.append(loading);
 
 let unmount: (() => void) | null = null;
@@ -58,11 +64,30 @@ function showLevel(assets: AssetMap, levelId: LevelId): void {
   );
 }
 
+// ปุ่มเต็มจอ: แสดงเฉพาะจอสัมผัสที่เบราว์เซอร์ยอม (iPhone Safari ไม่มี Fullscreen API จึงไม่แสดง)
+// ซ่อนแถบที่อยู่ของเบราว์เซอร์ทำให้เวทีใหญ่ขึ้นมากบนมือถือแนวนอน
+const fullscreenBtn = document.querySelector<HTMLButtonElement>('#fullscreen');
+if (fullscreenBtn && document.fullscreenEnabled && matchMedia('(pointer: coarse)').matches) {
+  const sync = (): void => { fullscreenBtn.hidden = document.fullscreenElement !== null; };
+  fullscreenBtn.addEventListener('click', () => {
+    document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+  });
+  document.addEventListener('fullscreenchange', sync);
+  sync();
+}
+
+// HUD ในด่านวาดตัวหนังสือบน canvas ซึ่งไม่รอฟอนต์ให้เอง จึงสั่งโหลดพร้อมรูป
+const fontsReady = Promise.all([
+  document.fonts.load("600 30px 'Mitr'", 'HP Enemies 0123456789'),
+  document.fonts.load("600 30px 'Mitr'", 'ด่าน'),
+]).catch(() => []);
+
 loadAll(ALL_ASSET_PATHS, browserImageLoader, (done, total) => {
   fill.style.width = `${(done / total) * 100}%`;
   label.textContent = `กำลังโหลด ${done}/${total}`;
 })
-  .then((assets) => {
+  .then(async (assets) => {
+    await fontsReady;
     loading.remove();
     showMain(assets);
   })

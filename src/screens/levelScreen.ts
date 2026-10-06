@@ -5,6 +5,7 @@ import { SPRITE_SIZE } from '../game/character';
 import { LEVELS } from '../game/data';
 import { FORTRESS_SIZE } from '../game/fortress';
 import { Level } from '../game/level';
+import { icon } from './icons';
 
 export type LevelScreenDeps = {
   levelId: 1 | 2 | 3;
@@ -18,6 +19,9 @@ export type LevelScreenDeps = {
 
 const STAGE_W = 1600;
 const STAGE_H = 800;
+const HUD_MARGIN = 28;
+const HUD_BAR_W = 420;
+const HUD_FONT = "'Mitr', system-ui, sans-serif";
 
 export function mountLevel(deps: LevelScreenDeps): () => void {
   const config = LEVELS[deps.levelId];
@@ -49,33 +53,42 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
 
   // ---- ปุ่ม Exit / Restart ----
   const exitBtn = document.createElement('button');
-  exitBtn.className = 'game-btn btn-exit';
-  exitBtn.textContent = 'Exit';
+  exitBtn.className = 'btn btn-quiet btn-exit';
+  exitBtn.append(icon('exit'), 'Exit');
   exitBtn.addEventListener('click', () => deps.onExit());
 
   const restartBtn = document.createElement('button');
-  restartBtn.className = 'game-btn btn-restart';
-  restartBtn.textContent = 'restart';
+  restartBtn.className = 'btn btn-quiet btn-restart';
+  restartBtn.append(icon('restart'), 'Restart');
   restartBtn.addEventListener('click', () => level.restart());
   deps.overlay.append(exitBtn, restartBtn);
 
   // ---- กล่องแพ้/ชนะ ----
+  // scrim กันการกดปุ่มยีราฟ/restart ข้างหลังตอนกล่องเปิด และทำให้กล่องเด่นขึ้น
+  const scrim = document.createElement('div');
+  scrim.className = 'result-scrim';
   const panel = document.createElement('div');
   panel.className = 'result-panel';
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'true');
+  const badge = document.createElement('div');
+  badge.className = 'badge';
   const title = document.createElement('h2');
+  title.id = 'result-title';
+  panel.setAttribute('aria-labelledby', title.id);
   const rowBtns = document.createElement('div');
   rowBtns.className = 'row';
   const backBtn = document.createElement('button');
-  backBtn.className = 'game-btn';
-  backBtn.textContent = 'Back to Map';
+  backBtn.className = 'btn btn-quiet';
+  backBtn.append(icon('map'), 'Back to Map');
   backBtn.addEventListener('click', () => deps.onExit());
   const tryAgainBtn = document.createElement('button');
-  tryAgainBtn.className = 'game-btn';
-  tryAgainBtn.textContent = 'Try Agian';
+  tryAgainBtn.className = 'btn btn-go';
+  tryAgainBtn.append(icon('restart'), 'Try Again');
   tryAgainBtn.addEventListener('click', () => level.restart());
   rowBtns.append(backBtn, tryAgainBtn);
-  panel.append(title, rowBtns);
-  deps.overlay.append(panel);
+  panel.append(badge, title, rowBtns);
+  deps.overlay.append(scrim, panel);
 
   let announced = false;
   let focusedIndex: number | null = null;
@@ -114,12 +127,17 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
       announced = true;
       title.textContent = level.status === 'won' ? 'You win!' : 'You lose!';
       tryAgainBtn.style.display = level.status === 'lost' ? '' : 'none';
+      panel.dataset.status = level.status;
       panel.dataset.open = 'true';
+      scrim.dataset.open = 'true';
+      // ย้าย focus เข้ากล่อง ผู้ใช้คีย์บอร์ดกด Enter ต่อได้เลย
+      (level.status === 'lost' ? tryAgainBtn : backBtn).focus();
       if (level.status === 'won') deps.onWin(config.unlocks);
     }
     if (level.status === 'playing' && announced) {
       announced = false;
       panel.dataset.open = 'false';
+      scrim.dataset.open = 'false';
     }
   }
 
@@ -142,8 +160,29 @@ export function mountLevel(deps: LevelScreenDeps): () => void {
 
     // แถบ HP ผูกกับป้อมของตัวเองโดยตรง — ต้นฉบับสลับข้างกันตอนสร้าง
     // (FortressGiraffe เรียก sethpenemy, FortressEnemy เรียก sethpgirafe)
-    renderer.text(`HP Enemies: ${ef.hp}`, 20, 40, { color: '#fff', font: 'bold 32px system-ui, sans-serif' });
-    renderer.text(`HP Giraffe: ${gf.hp}`, 1300, 40, { color: '#fff', font: 'bold 32px system-ui, sans-serif' });
+    drawHp('Enemies', ef.hp, ef.maxHp, HUD_MARGIN, 'left');
+    drawHp('Giraffe', gf.hp, gf.maxHp, STAGE_W - HUD_MARGIN - HUD_BAR_W, 'right');
+  }
+
+  function drawHp(label: string, hp: number, maxHp: number, x: number, side: 'left' | 'right'): void {
+    const textX = side === 'left' ? x + 6 : x + HUD_BAR_W - 6;
+    renderer.text(label, textX, 22, {
+      font: `600 30px ${HUD_FONT}`, color: '#fff7dc', align: side, baseline: 'top',
+      stroke: '#3a2410', strokeWidth: 8,
+    });
+    const isGiraffe = side === 'right';
+    renderer.meter(x, 62, HUD_BAR_W, 40, hp / maxHp, {
+      track: 'rgba(255, 247, 220, 0.85)',
+      fill: isGiraffe ? '#f7bb2e' : '#e8573f',
+      shade: isGiraffe ? '#d08d10' : '#b8361f',
+      stroke: '#3a2410',
+      lineWidth: 5,
+      fromRight: isGiraffe,
+    });
+    renderer.text(`${hp} / ${maxHp}`, x + HUD_BAR_W / 2, 83, {
+      font: `600 22px ${HUD_FONT}`, color: '#3a2410', align: 'center', baseline: 'middle',
+      stroke: '#fff7dc', strokeWidth: 5,
+    });
   }
 
   const loop = createLoop(update, render);

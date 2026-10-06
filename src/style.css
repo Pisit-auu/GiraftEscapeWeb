@@ -1,14 +1,59 @@
-:root { --stage-w: 1600; --stage-h: 800; }
+/*
+ * โทนสีหยิบมาจากภาพวาดในเกมโดยตรง (เส้นขอบน้ำตาลเข้ม, เหลืองยีราฟ, ครีม)
+ * ปุ่มทุกปุ่มจึงดูเป็นชิ้นเดียวกับฉาก ไม่ใช่ปุ่มเว็บแปะทับ
+ */
+:root {
+  --stage-w: 1600;
+  --stage-h: 800;
+
+  --ink: #3a2410;
+  --ink-soft: #6b4a26;
+  --sun: #f7bb2e;
+  --sun-light: #ffd968;
+  --sun-deep: #d08d10;
+  --cream: #fff7dc;
+  --cream-deep: #f0dfa8;
+  --leaf: #5fae4a;
+  --leaf-deep: #3d8a2e;
+  --tomato: #e8573f;
+  --tomato-deep: #b8361f;
+  --night: #24180c;
+
+  --font: 'Mitr', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* กันส่วนเว้าของจอ (notch) และแถบ home ตอนถือแนวนอน */
+  --safe-x: max(env(safe-area-inset-left), env(safe-area-inset-right));
+  --safe-y: max(env(safe-area-inset-top), env(safe-area-inset-bottom));
+}
+
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
-body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  display: grid; place-items: center;
+  height: 100vh; height: 100dvh;
+  background:
+    radial-gradient(ellipse at 50% 40%, #3b2814 0%, transparent 70%),
+    var(--night);
+  color: var(--cream);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+::selection { background: var(--sun); color: var(--ink); }
 
 #stage {
   position: relative;
-  width: min(100vw, calc(100vh * var(--stage-w) / var(--stage-h)));
+  /* 100dvh ไม่รวมแถบที่อยู่ของเบราว์เซอร์มือถือ 100vh เป็น fallback ของเบราว์เซอร์เก่า */
+  width: min(100vw - var(--safe-x) * 2, calc((100vh - var(--safe-y) * 2) * var(--stage-w) / var(--stage-h)));
+  width: min(100vw - var(--safe-x) * 2, calc((100dvh - var(--safe-y) * 2) * var(--stage-w) / var(--stage-h)));
   aspect-ratio: var(--stage-w) / var(--stage-h);
+  overflow: hidden;
+  border-radius: clamp(0px, (100vw - 1000px) * 0.02, 18px);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
 }
-#game { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+#game { width: 100%; height: 100%; display: block; }
 
 /* overlay ใช้พิกัดเดียวกับ canvas (1600x800) แล้ว scale ทั้งชั้นพร้อมกัน */
 #overlay {
@@ -19,76 +64,218 @@ body { display: grid; place-items: center; font-family: system-ui, sans-serif; }
 }
 #overlay > * { pointer-events: auto; position: absolute; }
 
-#rotate-hint { display: none; color: #fff; padding: 2rem; text-align: center; font-size: 1.2rem; }
+/* ---------- ปุ่ม: ขอบหมึกหนาแบบเส้นในภาพวาด ไล่เงาด้านล่างให้ดูกดได้ ---------- */
+.btn {
+  --face: var(--sun);
+  --face-light: var(--sun-light);
+  --face-deep: var(--sun-deep);
+  --text: var(--ink);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4em;
+  padding: 0 0.9em 0.12em;
+  font: 600 24px/1 var(--font);
+  white-space: nowrap;
+  color: var(--text);
+  background: linear-gradient(var(--face-light), var(--face) 55%);
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  box-shadow:
+    inset 0 -7px 0 var(--face-deep),
+    inset 0 3px 0 rgb(255 255 255 / 0.45),
+    0 8px 16px -4px rgb(40 20 0 / 0.45);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out), filter 140ms;
+}
+.btn svg { width: 1em; height: 1em; flex: none; }
+@media (hover: hover) {
+  .btn:not(:disabled):hover { transform: translateY(-3px); filter: brightness(1.05); }
+}
+.btn:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 -3px 0 var(--face-deep),
+    inset 0 3px 0 rgb(255 255 255 / 0.45),
+    0 3px 6px -2px rgb(40 20 0 / 0.45);
+}
+.btn:focus-visible, .spawn-btn:focus-visible {
+  outline: 5px solid var(--cream);
+  outline-offset: 4px;
+}
+.btn:disabled {
+  --face: #cbbd98; --face-light: #ddd2b4; --face-deep: #a89870;
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+.btn-go { --face: var(--leaf); --face-light: #86cc6a; --face-deep: var(--leaf-deep); --text: #fff; text-shadow: 0 2px 0 var(--ink); }
+.btn-quiet { --face: var(--cream); --face-light: #fff; --face-deep: var(--cream-deep); }
+
+/* ---------- หน้าแรก ---------- */
+.btn-start {
+  left: 640px; top: 520px; width: 320px; height: 104px;
+  font-size: 44px; border-width: 5px; border-radius: 30px;
+  animation: bob 2.4s ease-in-out infinite;
+}
+@keyframes bob { 50% { translate: 0 -8px; } }
+
+/* ---------- หน้าแผนที่ ---------- */
+.level-picker {
+  left: 56px; top: 200px;
+  display: flex; flex-direction: column; gap: 14px; padding: 14px;
+  background: rgb(255 247 220 / 0.92);
+  border: 4px solid var(--ink); border-radius: 26px;
+  box-shadow: 0 10px 20px -8px rgb(40 20 0 / 0.4);
+}
+.level-picker .btn { position: static; width: 176px; height: 76px; font-size: 28px; border-radius: 18px; }
+.level-picker .btn:not([data-selected='true']):not(:disabled) { --face: var(--cream); --face-light: #fff; --face-deep: var(--cream-deep); }
+.level-picker .btn:disabled { background: none; box-shadow: none; border-style: dashed; border-color: var(--ink-soft); opacity: 0.75; }
+.btn-play { left: 1040px; top: 660px; width: 240px; height: 96px; font-size: 40px; border-width: 5px; border-radius: 28px; }
+
+/* ---------- ในด่าน ---------- */
+.spawn-row {
+  left: 560px; top: 652px; width: 480px; height: 120px;
+  display: flex; justify-content: center; align-items: center; gap: 14px;
+}
+.spawn-btn {
+  width: 96px; height: 96px; padding: 0;
+  background: var(--cream) center / 88% no-repeat;
+  border: 4px solid var(--ink); border-radius: 22px;
+  box-shadow: inset 0 -6px 0 var(--cream-deep), 0 8px 16px -4px rgb(40 20 0 / 0.5);
+  cursor: pointer;
+  position: relative; overflow: hidden;
+  touch-action: manipulation;
+  transition: transform 140ms var(--ease-out), filter 200ms;
+}
+@media (hover: hover) {
+  .spawn-btn:not(:disabled):hover { transform: translateY(-4px); }
+}
+.spawn-btn:not(:disabled):active { transform: translateY(3px) scale(0.96); }
+.spawn-btn:disabled { cursor: not-allowed; filter: saturate(0.35) brightness(0.92); }
+/* แถบ cooldown ไล่ลงจากบนสุด */
+.spawn-btn .cd {
+  position: absolute; inset: 0 0 auto 0;
+  background: rgb(36 24 12 / 0.55);
+  border-bottom: 3px solid rgb(255 247 220 / 0.7);
+}
+.spawn-btn .cd[style*='height: 0%'] { border-bottom: 0; }
+
+.btn-restart, .btn-exit { top: 704px; height: 64px; width: 150px; font-size: 22px; border-radius: 18px; }
+.btn-restart { left: 1250px; }
+.btn-exit { left: 1418px; }
+
+.result-scrim {
+  inset: 0;
+  background: rgb(36 24 12 / 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: none;
+}
+.result-scrim[data-open='true'] { display: block; animation: fade-in 300ms var(--ease-out); }
+@keyframes fade-in { from { opacity: 0; } }
+.result-panel {
+  left: 470px; top: 210px; width: 660px; min-height: 340px;
+  padding: 40px 40px 44px;
+  background: var(--cream);
+  color: var(--ink);
+  border: 6px solid var(--ink); border-radius: 40px;
+  box-shadow: inset 0 -10px 0 var(--cream-deep), 0 30px 60px -10px rgb(0 0 0 / 0.55);
+  display: none; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  text-align: center;
+}
+.result-panel[data-open='true'] { display: flex; animation: pop-in 420ms var(--ease-out); }
+@keyframes pop-in { from { transform: translateY(24px) scale(0.92); opacity: 0; } }
+.result-panel .badge {
+  width: 112px; height: 112px; margin-top: -100px;
+  background: var(--sun) url('/assets/projectgame/default/defaultwalk0.png') center / 84% no-repeat;
+  border: 6px solid var(--ink); border-radius: 50%;
+  box-shadow: 0 10px 20px -6px rgb(0 0 0 / 0.45);
+}
+.result-panel[data-status='lost'] .badge { background-color: var(--tomato); filter: saturate(0.85); }
+.result-panel h2 { margin: 0; font: 600 60px/1.05 var(--font); text-wrap: balance; }
+.result-panel[data-status='won'] h2 { color: var(--leaf-deep); }
+.result-panel[data-status='lost'] h2 { color: var(--tomato-deep); }
+.result-panel .row { display: flex; gap: 16px; }
+.result-panel .btn { position: static; height: 76px; padding: 0 1.1em 0.12em; font-size: 26px; }
+
+/* ---------- ปุ่มเต็มจอ (เฉพาะจอสัมผัสที่ทำได้) ---------- */
+#fullscreen {
+  position: absolute; left: 1.2%; bottom: 2.4%; z-index: 2;
+  width: clamp(40px, 3.6vw, 52px); height: clamp(40px, 3.6vw, 52px);
+  padding: 0; border-radius: 14px; border-width: 3px;
+  box-shadow: inset 0 -4px 0 var(--cream-deep), 0 4px 10px -2px rgb(40 20 0 / 0.45);
+  font-size: clamp(18px, 1.6vw, 24px);
+}
+#fullscreen[hidden] { display: none; }
+
+/* ---------- หน้าโหลด ---------- */
+#loading {
+  position: absolute; inset: 0; z-index: 3;
+  display: grid; place-content: center; justify-items: center; gap: 2.2%;
+  color: var(--ink);
+  background: radial-gradient(ellipse at 50% 45%, #fff3b8, #f6dc7c 70%);
+  font-size: clamp(14px, 1.8vw, 24px);
+}
+#loading .mascot {
+  width: clamp(72px, 9vw, 128px); aspect-ratio: 1;
+  background: url('/assets/projectgame/default/defaultwalk0.png') center / contain no-repeat;
+  animation: bob 1.2s ease-in-out infinite;
+}
+#loading .bar {
+  width: clamp(200px, 32vw, 460px); height: clamp(14px, 1.5vw, 22px);
+  padding: 3px;
+  background: var(--cream);
+  border: 3px solid var(--ink); border-radius: 999px;
+}
+#loading .bar > i {
+  display: block; height: 100%; width: 0;
+  background: var(--sun); border-radius: inherit;
+  box-shadow: inset 0 -3px 0 var(--sun-deep);
+}
+#loading .err { color: var(--tomato-deep); max-width: 36em; text-align: center; font-size: 0.75em; }
+
+/* ---------- จอแนวตั้ง: ชวนหมุนจอ ---------- */
+#rotate-hint {
+  display: none;
+  flex-direction: column; align-items: center; gap: 28px;
+  padding: 32px max(24px, env(safe-area-inset-left));
+  text-align: center;
+}
+#rotate-hint svg { width: 120px; height: 120px; color: var(--sun); animation: turn 2.8s var(--ease-out) infinite; }
+#rotate-hint p { margin: 0; font-size: 22px; font-weight: 500; line-height: 1.5; }
+#rotate-hint small { display: block; font-size: 16px; font-weight: 400; color: #d9c49a; }
+@keyframes turn {
+  0%, 20% { transform: rotate(0deg); }
+  55%, 100% { transform: rotate(-90deg); }
+}
 @media (orientation: portrait) and (max-width: 900px) {
   #stage { display: none; }
-  #rotate-hint { display: block; }
+  #rotate-hint { display: flex; }
 }
-
-/* ---- ต่อท้าย src/style.css ---- */
-.spawn-row { left: 600px; top: 660px; width: 440px; height: 90px; display: flex; justify-content: center; gap: 8px; align-items: center; }
-
-.spawn-btn {
-  width: 80px; height: 80px; padding: 0;
-  background: #f2ff84 center/contain no-repeat;
-  border: 1px solid #000; cursor: pointer;
-  position: relative; overflow: hidden;
-}
-.spawn-btn:disabled { cursor: not-allowed; filter: grayscale(0.7) brightness(0.8); }
-/* แถบ cooldown ไล่ลงจากบนสุด */
-.spawn-btn .cd { position: absolute; inset: 0 0 auto 0; background: rgba(0,0,0,.55); transform-origin: top; }
-
-.game-btn {
-  background: #ffeb3b; border: 1px solid #333; cursor: pointer;
-  font: 14px system-ui, sans-serif; height: 30px;
-}
-.btn-exit { left: 1400px; top: 700px; width: 100px; }
-.btn-restart { left: 1300px; top: 700px; width: 100px; }
-
-.result-panel {
-  left: 600px; top: 300px; width: 400px; height: 200px;
-  background: #3f3f3f; color: #fff;
-  display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-}
-.result-panel[data-open='true'] { display: flex; }
-.result-panel h2 { margin: 0; font: bold 24px Arial, sans-serif; }
-.result-panel .row { display: flex; gap: 12px; }
-.result-panel .game-btn { position: static; width: 150px; }
-
-/* ---- ต่อท้าย src/style.css ---- */
-.menu-btn {
-  background: #333; color: #fff; border: 0; cursor: pointer;
-  width: 200px; height: 50px; font: 18px system-ui, sans-serif;
-}
-.menu-btn:disabled { background: #777; color: #ccc; cursor: not-allowed; }
-.level-picker { left: 350px; top: 60px; display: flex; gap: 10px; }
-.level-picker .level-pick { width: 120px; height: 40px; font-size: 15px; position: static; }
-.level-picker .level-pick[data-selected='true'] { outline: 3px solid #ffeb3b; }
-
-#loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; color: #fff; background: #111; }
-#loading .bar { width: 400px; height: 12px; background: #333; }
-#loading .bar > i { display: block; height: 100%; width: 0; background: #8bc34a; }
-#loading .err { color: #ff8a80; max-width: 700px; text-align: center; }
-
-/* ---- ต่อท้าย src/style.css ---- */
-/* กันนิ้วลากแล้วจอเลื่อน/ซูมระหว่างเล่น */
-#stage { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-.spawn-btn, .game-btn, .menu-btn { touch-action: manipulation; }
 
 /*
  * จอเล็ก: ต้องขยายปุ่มใน "พิกัดออกแบบ" เท่านั้น
- * overlay ทั้งชั้นถูก scale ลงตามความกว้างจอ (บนจอ 667px scale ราว 0.42)
- * ปุ่ม 80px จึงเหลือแค่ 33px จริง ต่ำกว่าเกณฑ์แตะ 44px
- * การเพิ่มขอบด้วย ::after ใช้ไม่ได้สองชั้น: มันหดตาม scale เหลือ 5px
- * และ .spawn-btn ตั้ง overflow:hidden ไว้สำหรับแถบ cooldown ซึ่งจะตัด ::after ทิ้ง
- * ที่ 120px -> 50px จริง และ 220x110 -> 92x46 จริง ผ่านเกณฑ์ทั้งคู่
+ * overlay ทั้งชั้นถูก scale ลงตามความกว้างจอ (มือถือแนวนอน 844x390 scale ราว 0.49)
+ * ปุ่มยีราฟ 120px -> ~58px จริง, restart/exit 110px -> ~54px จริง ผ่านเกณฑ์แตะ 44px
+ * การเพิ่มขอบแตะด้วย ::after ใช้ไม่ได้: .spawn-btn ตั้ง overflow:hidden ไว้สำหรับแถบ cooldown
  */
 @media (max-width: 900px), (max-height: 450px) {
-  .spawn-row { left: 340px; top: 640px; width: 720px; height: 130px; gap: 12px; }
-  .spawn-btn { width: 120px; height: 120px; }
-  .game-btn { height: 110px; font-size: 30px; }
-  .btn-restart { left: 1100px; top: 640px; width: 220px; }
-  .btn-exit { left: 1340px; top: 640px; width: 220px; }
-  /* ปุ่มในกล่องแพ้/ชนะยังเป็น static ตาม .result-panel .game-btn จึงไม่ถูกย้าย */
-  .result-panel .game-btn { height: 60px; font-size: 22px; }
+  .btn { border-width: 6px; }
+  .btn-start { left: 600px; top: 500px; width: 400px; height: 130px; font-size: 56px; }
+
+  .level-picker { left: 28px; top: 150px; gap: 16px; padding: 14px; }
+  .level-picker .btn { width: 236px; height: 124px; font-size: 40px; border-radius: 24px; }
+  .btn-play { left: 990px; top: 640px; width: 300px; height: 130px; font-size: 52px; }
+
+  .spawn-row { left: 340px; top: 640px; width: 720px; height: 140px; gap: 16px; }
+  .spawn-btn { width: 124px; height: 124px; border-width: 6px; border-radius: 28px; }
+  .btn-restart, .btn-exit { top: 650px; height: 116px; width: 210px; font-size: 34px; border-radius: 26px; }
+  .btn-restart { left: 1130px; }
+  .btn-exit { left: 1360px; }
+
+  .result-panel { left: 340px; top: 170px; width: 920px; min-height: 440px; gap: 36px; }
+  .result-panel h2 { font-size: 84px; }
+  .result-panel .btn { height: 124px; font-size: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 1ms !important; }
 }

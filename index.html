@@ -2,14 +2,31 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#24180c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/png" href="/assets/icongiraffe.png" />
+    <link rel="apple-touch-icon" href="/assets/icongiraffe.png" />
     <title>Giraffe Escape</title>
   </head>
   <body>
-    <div id="rotate-hint">หมุนจอเป็นแนวนอนเพื่อเล่น</div>
+    <div id="rotate-hint" role="status">
+      <svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+        <rect x="38" y="14" width="44" height="92" rx="10" stroke="currentColor" stroke-width="7" />
+        <path d="M54 94h12" stroke="currentColor" stroke-width="7" stroke-linecap="round" />
+      </svg>
+      <p>หมุนจอเป็นแนวนอนเพื่อเล่น<small>เกมนี้ออกแบบมาสำหรับจอแนวนอน</small></p>
+    </div>
     <div id="stage">
-      <canvas id="game" width="1600" height="800"></canvas>
+      <canvas id="game" width="1600" height="800" aria-label="ฉากเกม Giraffe Escape"></canvas>
       <div id="overlay"></div>
+      <button id="fullscreen" class="btn btn-quiet" type="button" aria-label="เต็มจอ" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+        </svg>
+      </button>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

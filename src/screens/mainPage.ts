@@ -1,6 +1,7 @@
 import type { AssetMap } from '../engine/assets';
 import { Renderer } from '../engine/renderer';
 import { BG_MAIN } from '../game/data';
+import { icon } from './icons';
 
 export type MainPageDeps = {
   assets: AssetMap;
@@ -19,10 +20,8 @@ export function mountMainPage(deps: MainPageDeps): () => void {
 
   deps.overlay.replaceChildren();
   const start = document.createElement('button');
-  start.className = 'menu-btn';
-  start.style.left = '700px';
-  start.style.top = '560px';
-  start.textContent = 'Start';
+  start.className = 'btn btn-go btn-start';
+  start.append(icon('play'), 'Start');
   start.addEventListener('click', () => deps.onStart());
   deps.overlay.append(start);
 
